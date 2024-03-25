@@ -32,7 +32,7 @@ sudo make install
 ### Launching it
 
 ```bash
-dpdk-replay [--nbruns NB] [--numacore 0|1] [`--usleep USLEEP_TIME`] FILE NIC_ADDR[,NIC_ADDR...]
+dpdk-replay [--nbruns NB] [--numacore 0|1] [***--usleep USLEEP_TIME***] FILE NIC_ADDR[,NIC_ADDR...]
 ```
 
 Example:
@@ -43,7 +43,7 @@ dpdk-replay --nbruns 1000 --numacore 0 --usleep 1 foobar.pcap 04:00.0,04:00.1,04
 ## TODO
 
 * Add a configuration file or cmdline options for all code defines.
-~~ * Add an option to configure maximum bitrate. ~~ （通过usleep简单实现控制速率，代码待提交）
+
 * Add an option to send the pcap with the good pcap timers.
 * Add an option to send the pcap with a multiplicative speed (like, ten times the normal speed).
 * Add an option to select multiple pcap files at once.
@@ -52,6 +52,7 @@ dpdk-replay --nbruns 1000 --numacore 0 --usleep 1 foobar.pcap 04:00.0,04:00.1,04
 * Add a Python module to facilitate scripting (something like what does scapy for tcpreplay sendpfast func).
 * Manage systems with more than 2 numa cores.
 * Use the maximum NICs capabilities (Tx queues/descriptors).
+~~ Add an option to configure maximum bitrate. ~~ （通过usleep简单实现控制速率，代码待提交）
 
 ## BSD LICENCE
 
