@@ -45,6 +45,7 @@ struct cmd_opts {
     unsigned int    maxbitrate;
     int             wait;
     char*           trace;
+	int				usleep;
 };
 
 /* struct to store the cpus context */
@@ -84,6 +85,7 @@ struct                  thread_ctx {
     int                 nbruns;
     unsigned int        nb_pkt;
     int                 nb_tx_queues;
+	int					usleep;
     /* results */
     double              duration;
     unsigned int        total_drop;

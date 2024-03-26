@@ -279,6 +279,37 @@ double timespec_diff_to_double(const struct timespec start, const struct timespe
     return (duration);
 }
 
+void *stats_thread(void* thread_ctx)
+{
+	fprintf(stdout, "stats thread started\n");
+	struct rte_eth_stats eth_stats_last[RET_MAX_ETHPORTS];
+	time_t lasttime = time(NULL);
+	while(1){
+		struct rte_eth_stats eth_stats;
+		unsigned int i;
+		RET_ETH_FOREACH_DEV(i){
+			time_t timenow = time(NULL);
+			fprintf(stdout, "port %u: ipkts:%ld(%.2lf kpps, %.2lf Mbps), opkts:%ld(%.2lf kpps, %2lf Mbps), \
+				imiss:%lu, ierror:%lu, oerror:%lu, nombuf:%lu \n",
+				i, eth_stats.ipackets,
+				(double)(eth_stats.ipackets - eth_stats_last[i].ipackets) / (timenow - lasttime) / 1000,
+				(double)(eth_stats.ibytes - eth_stats_last[i].ibytes) / (timenow - lasttime) *8 /1024/ 1024,
+				eth_stats.opackets,
+				(double)(eth_stats.opackets - eth_stats_last[i].opackets) / (timenow - lasttime) / 1000,
+				(double)(eth_stats.obytes - eth_stats_last[i].obytes) / (timenow - lasttime) *8 /1024/ 1024,
+				eth_stats.imissed, eth_stats.ierrors, eth_stats.oerrors, eth_stats.rx_nombuf
+				);
+			memcpy(&eth_stats_last[i], &eth_stats, sizeof(struct rte_eth_stats));
+			lasttime = timenow;
+
+		}
+		sleep(3);
+
+	}
+	return NULL;
+}
+
+
 int tx_thread(void* thread_ctx)
 {
     struct thread_ctx*  ctx;
@@ -352,6 +383,9 @@ int tx_thread(void* thread_ctx)
                 if (retry_tx != NB_RETRY_TX &&
                     tx_queue % NB_TX_QUEUES == 0)
                     usleep(100);
+				if (ctx.usleep){
+					usleep(ctx.usleep);
+				}
             }
             /* free unseccessfully sent  */
             if (unlikely(!retry_tx))
@@ -443,6 +477,7 @@ int start_tx_threads(const struct cmd_opts* opts,
         return (ENOMEM);
     bzero(ctx, sizeof(*ctx) * cpus->nb_needed_cpus);
     for (i = 0; i < cpus->nb_needed_cpus; i++) {
+		ctx[i].usleep = opts.usleep;
         ctx[i].sem = &sem;
         ctx[i].tx_port_id = i;
         ctx[i].nbruns = opts->nbruns;
@@ -450,6 +485,14 @@ int start_tx_threads(const struct cmd_opts* opts,
         ctx[i].nb_pkt = pcap->nb_pkts;
         ctx[i].nb_tx_queues = NB_TX_QUEUES;
     }
+
+	/*stats thread*/
+	pthread_t tid;
+	pthread_create(&tid, NULL, stats_thread, NULL);
+	if (tid < 0){
+		fprintf(stderr, "create stats thread fail");
+		return -1;
+	}
 
     /* launch threads, which will wait on the semaphore to start */
     for (i = 0; i < cpus->nb_needed_cpus; i++) {

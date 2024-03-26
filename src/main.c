@@ -23,8 +23,9 @@ void usage(void)
          "--numacore <NUMA-CORE> : use cores from the desired NUMA. Only\n"
          "  NICs on the selected numa core will be available (default is 0).\n"
          "--nbruns <1-N> : set the wanted number of replay (1 by default).\n"
-         "--wait-enter: will wait until you press ENTER to start the replay (asked\n"
-         "  once all the initialization are done)."
+         "--wait-enter: will wait until you press ENTER to start the replay (asked"
+         "  once all the initialization are done).\n"
+         "--usleep <1000> usleep every tx for limit send speed\n"
          /* TODO: */
          /* "[--maxbitrate bitrate]|[--normalspeed] : bitrate not to be exceeded (default: no limit) in ko/s.\n" */
          /* "  specify --normalspeed to replay the trace with the good timings." */
@@ -127,6 +128,12 @@ int parse_options(const int ac, char** av, struct cmd_opts* opts)
             opts->wait = 1;
             continue;
         }
+
+		if (!strcmp(av[i], "--usleep")){
+			opts->usleep = atoi(av[i+1]);
+			i++;
+			continue;
+		}
 
         break;
     }
