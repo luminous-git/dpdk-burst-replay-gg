@@ -7,7 +7,7 @@ dpdk_replay_SOURCES	=	main.c \
 						dpdk.c \
 						pcap.c \
 						utils.c
-LD_DPDK=$(shell pkg-config --cflags --lbs libdpdk) -mssse3
+LD_DPDK=$(shell pkg-config --cflags --libs libdpdk --static ) -mssse3
 dpdk_replay_CFLAGS	:=	$(CFLAGS) -I/usr/include/dpdk -march=native -I$(includedir)
 dpdk_replay_LDFLAGS	:=	$(LDFLAGS) -L$(libdir) -pthread -lnuma -lm -ldl \
 						-Wl,--whole-archive -Wl,--start-group \

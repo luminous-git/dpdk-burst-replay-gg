@@ -133,6 +133,12 @@ int preload_pcap(const struct cmd_opts* opts, struct pcap_ctx* pcap)
 
     /* loop on file to read all saved packets */
     for (total_read = 0, cpt = 0; ; cpt++) {
+		#define MAX_READ_PKT 20000000
+		if (cpt >= MAX_READ_PKT){
+			printf("Default dpdk lib mbuf limit 32GB memory, we just use first %d pkts(~ %.2lf%)",
+			MAX_READ_PKT, (double)total_read/pcap->cap_sz);
+			break;
+		}
         /* get packet pcap header */
         nb_read = read(pcap->fd, &pcap_rechdr, sizeof(pcap_rechdr));
         if (!nb_read) /* EOF :) */

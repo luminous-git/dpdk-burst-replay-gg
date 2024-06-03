@@ -358,9 +358,28 @@ int tx_thread(void* thread_ctx)
             for (j = 0; j < ctx->nb_pkt; j++) {
                 struct rte_mbuf *mbuf = mbufs[j];
                 struct rte_ether_hdr *eth_hdr = rte_pktmbuf_mtod(mbuf, struct rte_ether_hdr *);
-                struct rte_ipv4_hdr *ipv4_hdr = (struct rte_ipv4_hdr *)(eth_hdr + 1);
-                ipv4_hdr->src_addr += diff;
-                ipv4_hdr->dst_addr += diff;
+				
+				uint16_t type = rte_cpu_to_be_16(eth_hdr->ether_type);
+				uint16_t len = 0;
+				
+				if (type == RTE_ETHER_TYPE_VLAN){
+					struct rte_vlan_hdr* vlan_hdr = (struct rte_vlan_hdr*)(eth_hdr +1);
+					type = rte_cpu_to_be_16(vlan_hdr->eth_proto);
+				}
+				
+				if (type == RTE_ETHER_TYPE_IPV4){
+					struct rte_ipv4_hdr *ipv4_hdr = (struct rte_ipv4_hdr *)rte_pktmbuf_mtod_offset(mbuf, 
+					struct rte_ipv4_hdr*, len + sizeof(struct rte_ipv4_hdr*));
+					ipv4_hdr->src_addr += diff;
+					ipv4_hdr->dst_addr += diff;
+				}else if (type == RTE_ETHER_TYPE_IPV6){
+					struct rte_ipv6_hdr *ipv6_hdr = (struct rte_ipv6_hdr *)rte_pktmbuf_mtod_offset(mbuf, 
+					struct rte_ipv6_hdr*, len + sizeof(struct rte_ipv6_hdr*));
+					ipv6_hdr->src_addr += diff;
+					ipv6_hdr->dst_addr += diff;
+				}
+				
+				
             }
         }
 
